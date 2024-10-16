@@ -3,7 +3,7 @@ module.exports = {
   HOST: process.env.MYSQL_HOST ? process.env.MYSQL_HOST : 'localhost',
   USER: process.env.MYSQL_USER ? process.env.MYSQL_USER : 'root',
   PASSWORD: process.env.MYSQL_PASSWORD ? process.env.MYSQL_PASSWORD : '',
-  DB: process.env.MYSQL_DATABASE ? process.env.MYSQL_DATABASE : 'rc-italia',
+  DB: process.env.MYSQL_DATABASE ? process.env.MYSQL_DATABASE : 'ceangi-app',
   dialect: "mysql",
   port: 3306,
   pool: {

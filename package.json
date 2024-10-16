@@ -1,7 +1,7 @@
 {
-  "name": "rc-italia-be",
+  "name": "ceangi-app-be",
   "version": "1.0.0",
-  "description": "Backend RcItalia",
+  "description": "Backend ceangi-app",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
