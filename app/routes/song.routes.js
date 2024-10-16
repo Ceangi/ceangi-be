@@ -13,5 +13,6 @@ module.exports = function (app) {
     app.get("/api/song/allSongs", controller.allSongs);
     app.post("/api/song/createSong", controller.createSong);
     app.get('/api/song/getSongById/:id', controller.getSongById);
+    app.delete('/api/song/deleteSongById/:id', controller.deleteSongById);
 
 };

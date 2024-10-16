@@ -48,3 +48,24 @@ exports.getSongById = (req, res) => {
             res.status(500).send({ message: err.message });
         });
 };
+
+exports.deleteSongById = async (req, res) => {
+    const { id } = req.params; // Extract song ID from the request params
+
+    try {
+        // Find the song by ID
+        const song = await Song.findByPk(id);
+
+        if (!song) {
+            return res.status(404).json({ message: "Song not found!" });
+        }
+
+        // Delete the song
+        await song.destroy();
+
+        return res.status(200).json({ message: "Song deleted successfully!" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Error deleting song." });
+    }
+};
