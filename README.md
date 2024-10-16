@@ -58,4 +58,5 @@ npm install
 ```
 node server.js
 ```
-# rc-italia-be
+# ceangi-app-be
+# ceangi-be
