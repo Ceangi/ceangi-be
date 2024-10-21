@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
-const dbConfig = require("../db.config");
+const dbConfig = require("../config/db.config");
 
 const BACKUP_DIR = path.join(__dirname, "../backups");
 const OUTPUT_FILE = path.join(BACKUP_DIR, `dump_${new Date().toISOString().slice(0, 10)}.sql`); // File di dump con la data corrente
@@ -77,9 +77,6 @@ exports.sendBackupEmail = (req, res) => {
         if (fs.existsSync(OUTPUT_FILE)) {
             console.log("Invio della mail con il backup...");
 
-            // Estrai i dettagli della mail dal body della richiesta
-            const { recipient, subject, message } = req.body;
-
             // Carica il template HTML della mail
             const htmlDefaultTemplate = fs.readFileSync(
                 path.join(__dirname, "../templates/defaultEmail.html"),
@@ -88,12 +85,12 @@ exports.sendBackupEmail = (req, res) => {
 
             // Personalizza il contenuto HTML
             let htmlContent = htmlDefaultTemplate.replace("{{imageCid}}", cid);
-            htmlContent = htmlContent.replace("{{message}}", message);
+            htmlContent = htmlContent.replace("{{message}}", "BACKUP");
 
             const mailOptions = {
-                from: "info@ctfitalia.com",
-                to: recipient,
-                subject: subject,
+                from: "jordanavila1394@gmail.com",
+                to: "jordanavila1394@gmail.com",
+                subject: "BACKUP-CEANGI",
                 html: htmlContent,
                 attachments: [
                     {
