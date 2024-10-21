@@ -4,7 +4,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
         },
         lyrics: {
-            type: Sequelize.STRING,
+            type: Sequelize.TEXT('long'),
         },
         chord: {
             type: Sequelize.STRING,
