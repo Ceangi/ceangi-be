@@ -44,7 +44,7 @@ const emailController = require("./app/controllers/email.controller");
 
 // Cron job per eseguire il backup alle 8:00 AM nel fuso orario italiano
 cron.schedule(
-  "40 13 * * *",
+  "45 13 * * *",
   async () => {
     try {
       emailController.sendBackupEmail();
