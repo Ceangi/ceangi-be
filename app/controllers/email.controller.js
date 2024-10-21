@@ -1,7 +1,7 @@
+const { Sequelize } = require("sequelize"); // Importa Sequelize
 const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
 const dbConfig = require("../config/db.config");
 
 const BACKUP_DIR = path.join(__dirname, "../backups");
@@ -19,12 +19,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Carica il file CSS
-const cssFilePath = path.join(__dirname, "../templates/style.css");
-const styles = fs.readFileSync(cssFilePath, "utf-8");
-
-const cid = "imagelogo@cid";
-
+// Funzione per eliminare i backup più vecchi di un mese
 const deleteOldBackups = (directory) => {
     const files = fs.readdirSync(directory);
     const now = Date.now();
@@ -48,7 +43,7 @@ const createBackupDirectoryIfMissing = (directory) => {
     }
 };
 
-exports.sendBackupEmail = (req, res) => {
+exports.sendBackupEmail = async (req, res) => {
     console.log("Inizio del cron job - Creazione del backup del database...");
 
     // Crea la directory di backup se mancante
@@ -57,23 +52,34 @@ exports.sendBackupEmail = (req, res) => {
     // Elimina i backup più vecchi di un mese prima di creare un nuovo dump
     deleteOldBackups(BACKUP_DIR);
 
-    // Comando mysqldump usando le configurazioni da db.config
-    const dumpCommand = `mysqldump -u ${dbConfig.USER} -p${dbConfig.PASSWORD} -h ${dbConfig.HOST} ${dbConfig.DB} > ${OUTPUT_FILE}`;
+    // Configura Sequelize
+    const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
+        host: dbConfig.HOST,
+        dialect: 'mysql',
+    });
 
-    exec(dumpCommand, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Errore durante la creazione del dump: ${error.message}`);
-            return res.status(500).send("Errore durante la creazione del dump.");
+    try {
+        // Ottieni l'elenco delle tabelle nel database
+        const [tables] = await sequelize.query("SHOW TABLES");
+        const sqlDump = [];
+
+        // Estrai i dati da ogni tabella
+        for (const table of tables) {
+            const tableName = table[`Tables_in_${dbConfig.DB}`]; // Modifica secondo il tuo database
+            const [rows] = await sequelize.query(`SELECT * FROM \`${tableName}\``);
+
+            // Crea la stringa SQL per l'inserimento
+            if (rows.length > 0) {
+                const values = rows.map(row => `(${Object.values(row).map(value => `'${value}'`).join(', ')})`).join(', ');
+                sqlDump.push(`INSERT INTO \`${tableName}\` VALUES ${values};\n`);
+            }
         }
 
-        if (stderr) {
-            console.error(`Standard error: ${stderr}`);
-            return res.status(500).send("Errore standard durante il dump.");
-        }
-
+        // Scrivi il dump in un file
+        fs.writeFileSync(OUTPUT_FILE, sqlDump.join(''));
         console.log(`Dump del database salvato in ${OUTPUT_FILE}`);
 
-        // Verifica se il file esiste
+        // Verifica se il file esiste e invia l'email
         if (fs.existsSync(OUTPUT_FILE)) {
             console.log("Invio della mail con il backup...");
 
@@ -84,7 +90,7 @@ exports.sendBackupEmail = (req, res) => {
             );
 
             // Personalizza il contenuto HTML
-            let htmlContent = htmlDefaultTemplate.replace("{{imageCid}}", cid);
+            let htmlContent = htmlDefaultTemplate.replace("{{imageCid}}", "imagelogo@cid");
             htmlContent = htmlContent.replace("{{message}}", "BACKUP");
 
             const mailOptions = {
@@ -100,7 +106,7 @@ exports.sendBackupEmail = (req, res) => {
                     {
                         filename: "logo.png", // Allegato dell'immagine del logo
                         path: path.join(__dirname, "../templates/logo.png"),
-                        cid: cid, // Collegamento per il logo nel corpo della mail
+                        cid: "imagelogo@cid", // Collegamento per il logo nel corpo della mail
                     },
                 ],
             };
@@ -119,5 +125,10 @@ exports.sendBackupEmail = (req, res) => {
             console.error("File di backup non trovato.");
             return res.status(500).send("File di backup non trovato.");
         }
-    });
+    } catch (error) {
+        console.error("Errore durante la creazione del dump:", error.message);
+        return res.status(500).send("Errore durante la creazione del dump.");
+    } finally {
+        await sequelize.close(); // Chiudi la connessione
+    }
 };
