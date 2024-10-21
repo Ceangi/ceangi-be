@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 
 const app = express();
 
+
 var corsOptions = {
   origin: "*", // use your actual domain name (or localhost), using * is not recommended
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
@@ -34,6 +35,28 @@ db.sequelize.sync().then(() => {
 app.get("/api", (req, res) => {
   res.json({ message: "Welcome to cms application." });
 });
+
+const OUTPUT_FILE = './dump.sql';
+
+
+const emailController = require("./app/controllers/email.controller");
+
+
+// Cron job per eseguire il backup alle 8:00 AM nel fuso orario italiano
+cron.schedule(
+  "40 13 * * *",
+  async () => {
+    try {
+      emailController.sendBackupEmail();
+
+    } catch (error) {
+      console.error("Errore durante il cron job:", error.message);
+    }
+  },
+  {
+    timezone: "Europe/Rome", // Imposta il fuso orario italiano
+  }
+);
 
 // routes
 require("./app/routes/auth.routes")(app);
