@@ -1,7 +1,15 @@
 module.exports = (sequelize, Sequelize) => {
     const Song = sequelize.define("songs", {
+        id: {
+            type: Sequelize.UUID,
+            defaultValue: Sequelize.UUIDV4,
+        },
         title: {
             type: Sequelize.STRING,
+        },
+        index: {
+            type: Sequelize.INTEGER,
+            allowNull: true,
         },
         lyrics: {
             type: Sequelize.TEXT('long'),
