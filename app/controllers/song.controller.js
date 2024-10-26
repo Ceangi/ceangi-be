@@ -15,6 +15,7 @@ exports.allSongs = (req, res) => {
 exports.createSong = (req, res) => {
     // Create a song
     const song = {
+        index: req.body.index,
         title: req.body.title,
         lyrics: req.body.lyrics,
         chord: req.body.chord,
