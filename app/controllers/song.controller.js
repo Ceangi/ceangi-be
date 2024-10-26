@@ -50,6 +50,33 @@ exports.getSongById = (req, res) => {
         });
 };
 
+exports.updateSong = (req, res) => {
+    const id = req.params.id; // Get ID from URL parameters
+    const { index, title, lyrics, chord } = req.body;
+
+    Song.findByPk(id)
+        .then((song) => {
+            if (song) {
+                // Update song details
+                song.index = index;
+                song.title = title;
+                song.lyrics = lyrics;
+                song.chord = chord;
+
+                return song.save(); // Save changes
+            } else {
+                return res.status(404).send({ message: "Song not found." });
+            }
+        })
+        .then((updatedSong) => {
+            res.status(200).send(updatedSong);
+        })
+        .catch((err) => {
+            res.status(500).send({ message: err.message });
+        });
+};
+
+
 exports.deleteSongById = async (req, res) => {
     const { id } = req.params; // Extract song ID from the request params
 
